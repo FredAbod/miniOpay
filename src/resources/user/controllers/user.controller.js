@@ -84,6 +84,10 @@ export const addUserName = async (req, res, next) => {
         if (!userName) {
             return errorResMsg(res, 400, "User name is required");
         }
+        const existingUserName = await User.findOne({userName: userName})
+        if (existingUserName) {
+            return errorResMsg(res, 409, "User name already exists");
+        }
         
         const user = await User.findByIdAndUpdate(
             req.params._id, 

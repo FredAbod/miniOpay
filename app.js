@@ -6,6 +6,7 @@ import mongoSanitize from "express-mongo-sanitize";
 
 
 import userRoute from "./src/resources/user/routes/user.routes.js";
+import trxRoute from "./src/resources/user/routes/transaction.routes.js";
 const app = express();
 
 app.use(morgan("dev"));
@@ -38,5 +39,6 @@ const limiter = rateLimit({
 app.use("/api/v1/*", limiter);
 
 app.use("/api/v1/user", userRoute);
+app.use("/api/v1/trx", trxRoute);
 
 export default app;
