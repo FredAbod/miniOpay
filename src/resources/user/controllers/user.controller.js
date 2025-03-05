@@ -37,9 +37,25 @@ export const signIn = async (req, res, next) => {
         }
 
         const token = user.generateAuthToken();
+        
+        // Create a user object without sensitive information
+        const userResponse = {
+            _id: user._id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            userName: user.userName,
+            phoneNumber: user.phoneNumber,
+            accountNumber: user.accountNumber,
+            accountBalance: user.accountBalance,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt
+        };
+
         return successResMsg(res, 200, {
             message: "User signed in successfully",
-            token
+            token,
+            user: userResponse
         });
     } catch (e) {
         logger.error(e);
