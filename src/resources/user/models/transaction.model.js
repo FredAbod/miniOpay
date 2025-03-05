@@ -35,6 +35,10 @@ const transactionSchema = new mongoose.Schema({
         type: String,
         required: false
     },
+    payment_reference: {
+        type: String,
+        required: false
+    },
     balanceBefore: {
         type: mongoose.Decimal128,
         required: true
