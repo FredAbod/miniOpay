@@ -1,6 +1,6 @@
 // write user routes logic here
 import express from "express";
-import { deposit, transfer, withdraw } from "../controllers/transaction.Controller.js";
+import { deposit, transfer, withdraw } from "../controllers/transaction.controller.js";
 const router = express.Router();
 
 router.post("/deposit", deposit);
