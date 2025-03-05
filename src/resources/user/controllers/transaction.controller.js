@@ -199,3 +199,75 @@ export const transfer = async (req, res) => {
     return errorResMsg(res, 500, "Internal Server Error"); // Return an internal server error
   }
 };
+
+/**
+ * Get all transactions for a user
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+export const getUserTransactions = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    
+    // Validate userId format
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return errorResMsg(res, 400, "Invalid user ID format");
+    }
+    
+    // Pagination parameters
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    
+    // Filter by transaction type if provided
+    const typeFilter = req.query.type ? { transactionType: req.query.type } : {};
+    
+    // Count total transactions for pagination
+    const totalTransactions = await Transaction.countDocuments({
+      $or: [{ sender: userId }, { receiver: userId }],
+      ...typeFilter
+    });
+    
+    // Find transactions where user is either sender or receiver
+    const transactions = await Transaction.find({
+      $or: [{ sender: userId }, { receiver: userId }],
+      ...typeFilter
+    })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('sender', 'firstName lastName email userName')
+      .populate('receiver', 'firstName lastName email userName');
+    
+    // If no transactions found
+    if (transactions.length === 0) {
+      return successResMsg(res, 200, {
+        message: "No transactions found for this user",
+        transactions: [],
+        pagination: {
+          currentPage: page,
+          totalPages: 0,
+          totalItems: 0,
+          itemsPerPage: limit
+        }
+      });
+    }
+    
+    // Calculate total pages
+    const totalPages = Math.ceil(totalTransactions / limit);
+    
+    return successResMsg(res, 200, {
+      message: "Transactions retrieved successfully",
+      transactions,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems: totalTransactions,
+        itemsPerPage: limit
+      }
+    });
+  } catch (e) {
+    logger.error(e);
+    return errorResMsg(res, 500, "Internal Server Error");
+  }
+};
