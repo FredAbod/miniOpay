@@ -1,6 +1,6 @@
 import express from "express";
 import { deposit, transfer, withdraw, getUserTransactions } from "../controllers/transaction.controller.js";
-import { flutterwaveDeposit } from "../controllers/flutterwaveTransaction.js";
+import { flutterwaveWebhook } from "../controllers/flutterwaveTransaction.js";
 // import { auth } from "../../../middleware/auth.js";
 
 const router = express.Router();
@@ -14,6 +14,6 @@ router.post("/transfer", transfer);
 router.get("/user/:userId", getUserTransactions);
 
 // Flutterwave webhook route (no auth needed as it's called by Flutterwave)
-router.post("/flutterwave-webhook", flutterwaveDeposit);
+router.post("/flutterwave-webhook", flutterwaveWebhook);
 
 export default router;
