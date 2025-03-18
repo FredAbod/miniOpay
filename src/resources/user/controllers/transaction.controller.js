@@ -45,6 +45,11 @@ export const deposit = async (req, res) => {
     await session.commitTransaction(); // Commit the transaction
     session.endSession(); // End the session
 
+    const email = user.email;
+
+
+    await sendEmail(email, userName, "Deposit", amount, userAccountBalance, description);
+
     return successResMsg(res, 201, {
       message: "Deposit successful", // Return a success message
       transaction: transactions[0], // Return the first (and only) transaction from the array
@@ -60,146 +65,176 @@ export const deposit = async (req, res) => {
 // Withdrawal
 
 export const withdraw = async (req, res) => {
-  const session = await mongoose.startSession(); // Start a new session with mongoose
-  session.startTransaction(); // Start a new transaction
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    const { userName, amount, description } = req.body; // Destructure the request body to get userName, amount, and description
+    const { userName, amount, description } = req.body;
+
     if (!userName || !amount || !description) {
-      return errorResMsg(res, 400, "All fields are required"); // Return an error if any field is missing
+      return errorResMsg(res, 400, "All fields are required");
     }
 
     if (amount < 1000) {
-      return errorResMsg(res, 400, "Minimum withdrawal amount is 1000"); // Return an error if the withdrawal amount is less than 1000
+      return errorResMsg(res, 400, "Minimum withdrawal amount is 1000");
     }
 
-    const user = await User.findOneAndUpdate(
-      { userName }, // Find the user by userName
-      { $inc: { accountBalance: -amount } }, // Decrement the user's account balance by the amount
-      { session, new: true } // Use the current session and return the updated document
-    );
-
-    if (user.accountBalance < amount) {
-      return errorResMsg(res, 400, "Insufficient funds"); // Return an error if the user does not have enough funds
-    }
+    // Fetch user first without modifying balance
+    const user = await User.findOne({ userName }).session(session);
 
     if (!user) {
-      return errorResMsg(res, 404, "User not found"); // Return an error if the user is not found
+      return errorResMsg(res, 404, "User not found");
     }
 
-    const userAccountBalance = parseFloat(user.accountBalance.toString()); // Parse the user's account balance to a float
+    const email = user.email;
+
+    const currentBalance = parseFloat(user.accountBalance); // Ensure number format
     const amountNum = parseFloat(amount);
 
-    // Modify to pass an array as first argument to Transaction.create()
+    console.log("DEBUG: Current Balance Before Withdrawal:", currentBalance);
+    console.log("DEBUG: Withdrawal Amount:", amountNum);
+
+    if (currentBalance < amountNum) {  // Correct balance check
+      return errorResMsg(res, 400, "Insufficient funds");
+    }
+
+    // Now deduct the balance
+    const updatedUser = await User.findOneAndUpdate(
+      { userName },
+      { $inc: { accountBalance: -amountNum } },
+      { session, returnDocument: "after" } // Ensures latest balance is fetched
+    );
+
+    console.log("DEBUG: Updated Balance After Withdrawal:", updatedUser.accountBalance);
+
+    // Modify transaction logging
     const transactions = await Transaction.create(
       [
         {
-          sender: user._id, // Set the sender to the user's ID
-          transactionType: "withdrawal", // Set the transaction type to 'withdrawal'
-          amount, // Set the amount
-          description, // Set the description
-          balanceBefore: userAccountBalance + amountNum, // Set the balance before the withdrawal
-          balanceAfter: userAccountBalance, // Set the balance after the withdrawal
-          status: "successful", // Set the status
+          sender: updatedUser._id,
+          transactionType: "withdrawal",
+          amount: amountNum,
+          description,
+          balanceBefore: currentBalance,  //  Correct balance before withdrawal
+          balanceAfter: updatedUser.accountBalance, //  Updated balance after withdrawal
+          status: "successful",
         },
       ],
       { session }
-    ); // Use the current session
+    );
 
-    await session.commitTransaction(); // Commit the transaction
-    session.endSession(); // End the session
+    await session.commitTransaction();
+    session.endSession();
+
+    await sendEmail(email, userName, "Withdrawal", amount, updatedUser.accountBalance, description); 
 
     return successResMsg(res, 201, {
-      message: "Withdrawal successful", // Return a success message
-      transaction: transactions[0], // Return the first (and only) transaction from the array
+      message: "Withdrawal successful",
+      transaction: transactions[0],
     });
   } catch (e) {
-    logger.error(e); // Log the error
-    await session.abortTransaction(); // Abort the transaction
-    session.endSession(); // End the session
-    return errorResMsg(res, 500, "Internal Server Error"); // Return an internal server error
+    logger.error(e);
+    await session.abortTransaction();
+    session.endSession();
+    return errorResMsg(res, 500, "Internal Server Error");
   }
 };
+
 
 // Transfer
 
 export const transfer = async (req, res) => {
-  const session = await mongoose.startSession(); // Start a new session with mongoose
-  session.startTransaction(); // Start a new transaction
+  const session = await mongoose.startSession(); // Start a new session
+
   try {
-    const { senderUserName, receiverUserName, amount, description } = req.body; // Destructure the request body to get senderUserName, receiverUserName, amount, and description
-    if (!senderUserName || !receiverUserName || !amount || !description) {
-      return errorResMsg(res, 400, "All fields are required"); // Return an error if any field is missing
-    }
-    
-    const sender = await User.findOne({ userName: senderUserName });
-    if (!sender) {
-      return errorResMsg(res, 404, "Sender not found"); // Return an error if the sender is not found
-    }
-    
-    const receiver = await User.findOne({ userName: receiverUserName });
-    if (!receiver) {
-      return errorResMsg(res, 404, "Receiver not found"); // Return an error if the receiver is not found
+    await session.withTransaction(async () => {
+      const { senderUserName, receiverUserName, amount, description } = req.body;
+      if (!senderUserName || !receiverUserName || !amount || !description) {
+        await session.abortTransaction();
+        return errorResMsg(res, 400, "All fields are required");
+      }
+
+      const sender = await User.findOne({ userName: senderUserName }).session(session);
+      if (!sender) {
+        await session.abortTransaction();
+        return errorResMsg(res, 404, "Sender not found");
+      }
+
+      const receiver = await User.findOne({ userName: receiverUserName }).session(session);
+      if (!receiver) {
+        await session.abortTransaction();
+        return errorResMsg(res, 404, "Receiver not found");
+      }
+
+      // Ensure account balance is treated as a number
+    const senderBalance = parseFloat(sender.accountBalance); 
+    const amountNum = parseFloat(amount); 
+
+    if (senderBalance < amountNum) {
+      await session.abortTransaction();
+      return errorResMsg(res, 400, "Insufficient funds");
     }
 
-    const senderTrx = await User.findOneAndUpdate(
-      {     
-        userName: senderUserName,
-      },
-      {
-        $inc: { accountBalance: -amount },
-      },
-      { session, new: true }
+    // Update sender's balance and ensure we get the updated value
+    const senderUpdated = await User.findOneAndUpdate(
+      { userName: senderUserName },
+      { $inc: { accountBalance: -amountNum } },
+      { session, returnDocument: "after" } // Ensure we get the updated balance
     );
 
-    if (senderTrx.accountBalance < amount) {
-      return errorResMsg(res, 400, "Insufficient funds"); // Return an error if the sender does not have enough funds
+    if (senderUpdated.accountBalance < 0) {
+      await session.abortTransaction();
+      return errorResMsg(res, 400, "Insufficient funds");
     }
-    const receiverTrx = await User.findOneAndUpdate(
-          {
-            userName: receiverUserName,
-          },
-          {
-            $inc: { accountBalance: amount },
-          },
-          { session, new: true }
-        );
 
+      // Update receiver's balance
+      await User.updateOne(
+        { userName: receiverUserName },
+        { $inc: { accountBalance: amount } },
+        { session }
+      );
 
-    const senderAccountBalance = parseFloat(senderTrx.accountBalance.toString()); // Parse the sender's account balance to a float
-      const receiverAccountBalance = parseFloat(receiverTrx.accountBalance.toString()); // Parse the receiver's account balance to a float
-      const amountNum = parseFloat(amount);
-
-      // Modify to pass an array as first argument to Transaction.create()
-      const transactions = await Transaction.create(
+      // Create transaction record
+      const transaction = await Transaction.create(
         [
           {
-            sender: senderTrx._id, // Set the sender to the sender's ID
-            receiver: receiverTrx._id, // Set the receiver to the receiver's ID
-            transactionType: "transfer", // Set the transaction type to 'transfer'
-            amount, // Set the amount
-            description, // Set the description
-            balanceBefore: senderAccountBalance + amountNum, // Set the balance before the transfer
-            balanceAfter: senderAccountBalance, // Set the balance after the transfer
-            status: "successful", // Set the status
+            sender: sender._id,
+            receiver: receiver._id,
+            transactionType: "transfer",
+            amount,
+            description,
+            balanceBefore: sender.accountBalance,
+            balanceAfter: sender.accountBalance - amount,
+            status: "successful",
           },
         ],
         { session }
-      ); // Use the current session
-      
-    await session.commitTransaction(); // Commit the transaction
-    session.endSession(); // End the session
+      );
+
+      const email = sender.email;
+      const receiverEmail = receiver.email;
+
+
+      await sendEmail(email, sender.userName, "Transfer", amount, sender.accountBalance - amount, description);
+      await sendEmail(receiverEmail, receiver.userName, "Transfer Received", + amount, receiver.accountBalance, description);
+
     
-    return successResMsg(res, 201, {
-      message: "Transfer successful", // Return a success message
-      transaction: transactions[0], // Return the first (and only) transaction from the array
+
+      return successResMsg(res, 201, {
+        message: "Transfer successful",
+        transaction: transaction[0],
+      });
     });
+
+    session.endSession(); // Close session after transaction completes
   } catch (e) {
-    logger.error(e); // Log the error
-    await session.abortTransaction(); // Abort the transaction
-    session.endSession(); // End the session
-    return errorResMsg(res, 500, "Internal Server Error"); // Return an internal server error
+    logger.error(e);
+    await session.abortTransaction();
+    session.endSession();
+    return errorResMsg(res, 500, "Internal Server Error");
   }
 };
+
 
 /**
  * Get all transactions for a user

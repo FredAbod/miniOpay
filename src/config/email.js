@@ -32,9 +32,9 @@ export async function sendEmail(receiverEmail, userName, transactionType, amount
             port: 465,
             secure: true,
             auth: {
-                user: 'jinyjagz@gmail.com',
-                pass: "rastgicksmgsihql"
-            },
+        user: process.env.EMAIL_NODEMAILER,
+        pass: process.env.PASSWORD_NODEMAILER,
+      },
             tls: {
                 rejectUnauthorized: false
             }

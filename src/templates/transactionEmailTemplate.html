@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Transfer Successful</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
+        .container { max-width: 600px; background: #ffffff; padding: 20px; margin: auto; border-radius: 8px; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); }
+        .header { background: #4CAF50; color: white; text-align: center; padding: 15px; font-size: 22px; border-radius: 8px 8px 0 0; }
+        .content { padding: 20px; text-align: left; font-size: 16px; color: #333; }
+        .content p { margin: 10px 0; }
+        .details { background: #f9f9f9; padding: 15px; border-radius: 5px; margin-top: 15px; }
+        .footer { text-align: center; margin-top: 20px; font-size: 14px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">Transfer Successful ✅</div>
+        <div class="content">
+            <p>Dear <strong>{{userName}}</strong>,</p>
+            <p>Your transfer of <strong>{{amount}}</strong> is successful.</p>
+            <p>Your available balance is <strong>{{newBalance}}</strong>.</p>
+
+            <div class="details">
+                <p><strong>Date:</strong> {{date}}</p>
+                <p><strong>Description:</strong> {{transactionId}}</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>If you did not authorize this transaction, please contact us immediately.</p>
+            <p>&copy; 2024 JPayApp. All Rights Reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
