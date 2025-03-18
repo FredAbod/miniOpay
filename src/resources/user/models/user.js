@@ -31,12 +31,12 @@ const userSchema = new mongoose.Schema({
   },
   accountNumber: {
     type: String,
-    unique: true
+    //unique: true
   },
   userName: {
     type: String,
     // required: [true, 'Username is required'],
-    unique: true,
+    //unique: true,
     trim: true
   },
   profilePicture: {

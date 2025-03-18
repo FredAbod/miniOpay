@@ -11,9 +11,7 @@ export const signUp = async (req, res, next) => {
             return errorResMsg(res, 400, "Email and password are required");
         }
         const newUser = (await User.create(req.body));
-        if (newUser){
-            sendWelcomeEmail(email, firstName); 
-        }
+        await sendWelcomeEmail(email); 
         return successResMsg(res, 201, {
             message: "User created successfully",
             user: newUser

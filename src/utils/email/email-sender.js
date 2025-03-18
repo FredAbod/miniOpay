@@ -8,11 +8,11 @@ import fgPasswordTemplate from "../templates/FgPassword-template.js";
 import resetPasswordTemplate from "../templates/resetPassword-template.js";
 
 // send a welcome message
-const sendWelcomeEmail = async (email, firstName) => {
+const sendWelcomeEmail = async (email) => {
   try {
     const transporter = nodemailer.createTransport({
-      service: "getsavey.com",
-      host: "getsavey.com",
+      //service: "getsavey.com",
+      host: "pop.gmail.com",
       port: 465,
       secure: true,
       auth: {
@@ -22,10 +22,10 @@ const sendWelcomeEmail = async (email, firstName) => {
     });
 
     const mailOptions = {
-      from: "support@getsavey.com",
+      from: "ola.gabriel19@gmail.com",
       to: email,
       subject: "Welcome to Savey!",
-      html: welcomeTemplate(firstName),
+      html: welcomeTemplate(email),
     };
     const info = await transporter.sendMail(mailOptions);
     console.log(
@@ -34,7 +34,7 @@ const sendWelcomeEmail = async (email, firstName) => {
     );
   } catch (error) {
     console.log("Email error:", error.message);
-    throw new error("Couldn't send Mail.");
+    throw new Error("Couldn't send Mail.");
   }
 };
 
