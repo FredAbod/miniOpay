@@ -3,6 +3,7 @@ import { errorResMsg, successResMsg } from "../../../utils/lib/response.js";
 import Transaction from "../models/transaction.model.js";
 import User from "../models/user.js";
 import logger from "../../../utils/log/logger.js";
+import { sendEmail } from "../../../config/email.js"
 
 export const deposit = async (req, res) => {
   const session = await mongoose.startSession(); // Start a new session with mongoose
