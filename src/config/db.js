@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import logger from '../utils/log/logger.js';
-
+import dotenv from "dotenv"; 
+ 
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGO_URI, {

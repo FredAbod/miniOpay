@@ -1,6 +1,7 @@
 import { errorResMsg, successResMsg } from "../../../utils/lib/response.js";
 import logger from "../../../utils/log/logger.js";
 import User from "../models/user.js";
+import { sendWelcomeEmail } from "../../../utils/email/email-sender.js";
 
 
 export const signUp = async (req, res, next) => {
@@ -10,6 +11,9 @@ export const signUp = async (req, res, next) => {
             return errorResMsg(res, 400, "Email and password are required");
         }
         const newUser = (await User.create(req.body));
+        if (newUser){
+            sendWelcomeEmail(email, firstName); 
+        }
         return successResMsg(res, 201, {
             message: "User created successfully",
             user: newUser
