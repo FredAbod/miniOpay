@@ -16,7 +16,7 @@ app.use(express.urlencoded({ extended: true }));
 
 
 // XSS protection middleware
-app.use(xssClean());
+app.use(xssClean()); 
 
 // MongoDB query sanitizer middleware
 app.use(mongoSanitize());
