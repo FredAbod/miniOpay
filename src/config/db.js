@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 import logger from '../utils/log/logger.js';
+import dotenv from "dotenv"
+dotenv.config;
 
 const connectDB = async () => {
   try {
@@ -13,7 +15,7 @@ const connectDB = async () => {
       w: 'majority',
       retryWrites: true,
       // Increase lock request timeout
-      maxTimeMS: 30000
+      // maxTimeMS: 30000
     });
     
     logger.info(`MongoDB Connected: ${conn.connection.host}`);

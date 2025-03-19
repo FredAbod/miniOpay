@@ -1,7 +1,7 @@
 import app from "./app.js";
 import dotenv from "dotenv";
 import logger from "./src/utils/log/logger.js";
-import connectDB from "./src/database/db.js"
+import connectDB from "./src/config/db.js"
 // import { sendServerFailure } from "./utils/email/email-sender.js";
 
 
