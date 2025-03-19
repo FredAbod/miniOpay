@@ -7,6 +7,7 @@ import cors from "cors";
 
 import userRoute from "./src/resources/user/routes/user.routes.js";
 import trxRoute from "./src/resources/user/routes/transaction.routes.js";
+import adminRoute from "./src/resources/user/routes/admin.routes.js";
 const app = express();
 
 app.use(cors());
@@ -16,7 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 
 
 // XSS protection middleware
-app.use(xssClean());
+app.use(xssClean()); 
 
 // MongoDB query sanitizer middleware
 app.use(mongoSanitize());
@@ -41,5 +42,6 @@ app.use("/api/v1/*", limiter);
 
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/trx", trxRoute);
+app.use("/api/v1/admin", adminRoute);
 
 export default app;
