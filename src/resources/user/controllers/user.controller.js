@@ -3,6 +3,7 @@ import logger from "../../../utils/log/logger.js";
 import User from "../models/user.js";
 
 
+
 export const signUp = async (req, res, next) => {
     const {email, password} = req.body;
     try {
@@ -14,6 +15,7 @@ export const signUp = async (req, res, next) => {
             message: "User created successfully",
             user: newUser
         });
+
     } catch (e) {
         logger.error(e);
         return errorResMsg(res, 500, "Internal Server Error");

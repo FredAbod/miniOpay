@@ -4,6 +4,7 @@ import Admin from "../models/admin.models.js";
 import User from "../models/user.js";
 import Transaction from "../models/transaction.model.js";
 import mongoose from "mongoose";
+import { sendWelcomeEmail } from "../../../utils/email/email-sender.js";
 
 // ========== ADMIN AUTHENTICATION ==========
 
@@ -54,10 +55,14 @@ export const createAdmin = async (req, res) => {
     // Remove password from response
     newAdmin.password = undefined;
 
+    // Send welcome email
+    await sendWelcomeEmail(newAdmin.email, newAdmin.firstName);
+
     return successResMsg(res, 201, {
       message: "Admin created successfully",
       admin: newAdmin
     });
+
   } catch (error) {
     logger.error("Error creating admin:", error);
     return errorResMsg(res, 500, "Internal Server Error");
@@ -114,11 +119,15 @@ export const adminSignIn = async (req, res) => {
       lastLogin: admin.lastLogin
     };
 
+    await sendWelcomeEmail(adminResponse.email, adminResponse.firstName);
+
     return successResMsg(res, 200, {
       message: "Admin signed in successfully",
       token,
       admin: adminResponse
     });
+
+  
   } catch (error) {
     logger.error("Error during admin sign in:", error);
     return errorResMsg(res, 500, "Internal Server Error");
