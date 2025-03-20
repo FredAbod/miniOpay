@@ -37,7 +37,9 @@ const router = express.Router();
 
 // Admin Authentication
 router.post("/signin", adminSignIn);
-router.post("/create", adminAuth, superAdminCheck, createAdmin);
+router.post("/create",  createAdmin);
+
+// adminAuth, superAdminCheck,
 
 // Admin Profile Management
 router.get("/profile", adminAuth, getAdminProfile);
