@@ -6,6 +6,8 @@ import verificationTemplate from "../templates/verification-template.js";
 import welcomeTemplate from "../templates/welcome-template.js";
 import fgPasswordTemplate from "../templates/FgPassword-template.js";
 import resetPasswordTemplate from "../templates/resetPassword-template.js";
+import dotenv from "dotenv"
+dotenv.config();
 
 // send a welcome message
 const sendWelcomeEmail = async (email, firstName) => {
@@ -16,8 +18,8 @@ const sendWelcomeEmail = async (email, firstName) => {
       port: 465,
       secure: true,
       auth: {
-        user: process.env.EMAIL__NODEMAILER,
-        pass: process.env.PASSWORD__NODEMAILER,
+        user: process.env.EMAIL_NODEMAILER,
+        pass: process.env.PASSWORD_NODEMAILER,
       },
     });
 

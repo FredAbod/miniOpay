@@ -4,7 +4,12 @@ import Admin from "../models/admin.models.js";
 import User from "../models/user.js";
 import Transaction from "../models/transaction.model.js";
 import mongoose from "mongoose";
-import { sendWelcomeEmail } from "../../../utils/email/email-sender.js";
+import bcrypt from "bcryptjs";
+import jwt from 'jsonwebtoken';
+import { sendEmail } from "../../../database/email.js";
+import { passwordHash, passwordCompare } from "../../../middleware/hashing.js";
+import adminTemplate from '../../../utils/templates/admin-template.js'
+import nodemailer from "nodemailer"
 
 // ========== ADMIN AUTHENTICATION ==========
 
@@ -16,9 +21,9 @@ import { sendWelcomeEmail } from "../../../utils/email/email-sender.js";
 export const createAdmin = async (req, res) => {
   try {
     // Check if requester is super-admin
-    if (req.user?.role !== 'super-admin') {
-      return errorResMsg(res, 403, "Only super admins can create new admins");
-    }
+    // if (req.user?.role !== 'super-admin') {
+    //   return errorResMsg(res, 403, "Only super admins can create new admins");
+    // }
 
     const { 
       firstName, 
@@ -56,13 +61,38 @@ export const createAdmin = async (req, res) => {
     newAdmin.password = undefined;
 
     // Send welcome email
-    await sendWelcomeEmail(newAdmin.email, newAdmin.firstName);
+    // await sendWelcomeEmail(newAdmin.email, newAdmin.firstName);
+    try {
+      // Send welcome email to new admin
+      const transporter = nodemailer.createTransport({
+        service: "smtp.gmail.com",
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false,
+        auth: {
+          user: process.env.EMAIL_NODEMAILER,
+          pass: process.env.PASSWORD_NODEMAILER,
+        },
+      });
+
+      const mailOptions = {
+        from: "support@gmail.com",
+        to: email,
+        subject: "Welcome to Miniopay Admin Portal",
+        html: adminTemplate(firstName, role || 'admin')
+      };
+
+      await transporter.sendMail(mailOptions);
+      logger.info(`Welcome email sent to admin: ${email}`);
+    } catch (emailError) {
+      // Log email error but don't fail the request
+      logger.error("Error sending welcome email:", emailError);
+    }
 
     return successResMsg(res, 201, {
       message: "Admin created successfully",
       admin: newAdmin
     });
-
   } catch (error) {
     logger.error("Error creating admin:", error);
     return errorResMsg(res, 500, "Internal Server Error");
@@ -118,8 +148,6 @@ export const adminSignIn = async (req, res) => {
       status: admin.status,
       lastLogin: admin.lastLogin
     };
-
-    await sendWelcomeEmail(adminResponse.email, adminResponse.firstName);
 
     return successResMsg(res, 200, {
       message: "Admin signed in successfully",
