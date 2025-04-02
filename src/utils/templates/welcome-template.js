@@ -1,4 +1,4 @@
-const welcomeTemplate = (firstName) => {
+const welcomeTemplate = (email) => {
   return `<!DOCTYPE html>
   <html lang="en">
   <head>
@@ -94,7 +94,7 @@ const welcomeTemplate = (firstName) => {
       <div>
           <div class='welcome'>
             <h1><span style="font-weight: 700;"></span>Welcome to Savey! Start your journey into becoming a Saver</h1>
-            <p>Hi ${firstName}, </p>
+            <p>Hi ${email}, </p>
             <p>I want to personally welcome you to our Savey Africa designed to help you achieve financial freedom. Our app is designed to help you manage their finances in a smart and unique way by offering tools for budgeting, investing, saving, spending, loans, and insurance. We believe that financial freedom is achievable for everyone, and our app is here to help you on that journey.</p>
             <p>At Savey, we believe in staying accountable and taking control of your finances. Our app offers personalized recommendations and insights based on your financial data, helping you to make informed decisions about your money. We also offer a virtual account to pay with and cashback rewards to help you save even more.</p>
             <p>Our team has worked tirelessly to create an app that is not only easy to use but also secure. We use advanced encryption and other security measures to protect your financial data and comply with all applicable data privacy and security regulations.</p>
