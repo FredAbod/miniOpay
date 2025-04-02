@@ -87,14 +87,14 @@ const adminTemplate = (firstName, role) => {
     <body>
         <div>
             <div class='welcome'>
-              <h1><span style="font-weight: 700;">Welcome to Savey Admin Portal!</span></h1>
+              <h1><span style="font-weight: 700;">Welcome to Miniopay Admin Portal!</span></h1>
               <p>Hello ${firstName},</p>
-              <p>Welcome to the Savey Admin Portal. Your account has been created with ${role} privileges.</p>
-              <p>You now have access to manage and oversee operations in the Savey platform. Please log in to the admin portal to get started.</p>
+              <p>Welcome to the Miniopay Admin Portal. Your account has been created with ${role} privileges.</p>
+              <p>You now have access to manage and oversee operations in the miniopay platform. Please log in to the admin portal to get started.</p>
               <p>For security reasons, please change your password upon your first login.</p>
               <p>If you have any questions or need assistance, please contact the super admin.</p>
               <p>Best regards,</p>
-              <p>The Savey Team</p>
+              <p>The miniopay Team</p>
               <small>For support, reach out to us at <span style='color:#2230F6'>support@getsavey.com</span></small>
             </div>
             <div class='footer'>
